@@ -55,9 +55,12 @@ aws iam update-account-password-policy \
 ```
 
 ### Proof of Work:
-1. ![Root User MFA Screenshot](images/MFA_root_user_proof.png)
-2. ![Admin user with admin group piveleges](images/admin-user.png)
-3. ![Password-Policy](images/password-policy.png)
+1. Created non-root user and enabled MFA for best security practices.
+![Root User MFA Screenshot](images/MFA_root_user_proof.png)
+2. Created IAM admin user and user group with admin priveleges
+ ![Admin user with admin group piveleges](images/admin-user.png)
+3.  Created a Secure Password Policy 
+![Password-Policy](images/password-policy.png)
 
 ### Notes
 
