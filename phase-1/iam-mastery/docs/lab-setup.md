@@ -55,7 +55,7 @@ aws iam update-account-password-policy \
 ```
 
 ### Proof of Work:
-1. ![Root User MFA Screenshot](images/root_user_proof.png)
+1. ![Root User MFA Screenshot](images/MFA_root_user_proof.png)
 2. ![Admin user with admin group piveleges](images/admin-user.png)
 3. ![Password-Policy](images/password-policy.png)
 
