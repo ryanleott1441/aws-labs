@@ -9,6 +9,7 @@ for a full documentated journey
 
 - [Lesson 1: Setting up Root user and Admin user](#lesson-1-setting-up-root-user-and-admin-user)
 - [Lesson 2: Groups, Users, Profiles for least priveleged access](#lesson-2-groups-users-profiles-for-least-priveleged-access)
+- [Lesson 3: Learning the theory behind IAM](#lesson-3-learning-the-theory-behind-iam)
 - [Full CLI Command reference for IAM](#full-cli-command-referenece-for-iam)
 
 
