@@ -10,6 +10,7 @@ for a full documentated journey
 - [Lesson 1: Setting up Root user and Admin user](#lesson-1-setting-up-root-user-and-admin-user)
 - [Lesson 2: Groups, Users, Profiles for least priveleged access](#lesson-2-groups-users-profiles-for-least-priveleged-access)
 - [Lesson 3: Learning the theory behind IAM](#lesson-3-learning-the-theory-behind-iam)
+- [Lesson 4: Creating Customer Managed Policies](#lesson-4-creating-customer-managed-policies)
 - [Full CLI Command reference for IAM](#full-cli-command-referenece-for-iam)
 
 
@@ -64,7 +65,7 @@ aws iam update-account-password-policy \
 1. Created non-root user and enabled MFA for best security practices.
 ![Root User MFA Screenshot](images/MFA_root_user_proof.png)
 2. Created IAM admin user and user group with admin priveleges
- ![Admin user with admin group piveleges](images/admin-user.png)
+![Admin user with admin group piveleges](images/admin-user.png)
 3.  Created a Secure Password Policy 
 ![Password-Policy](images/password-policy.png)
 
@@ -253,6 +254,166 @@ In practice, inline policies are rarely recommended except for very specific sit
     - Managed policies = scalable, reusable, maintainable
 
 
+## Lesson 4: Creating Customer Managed Policies
+
+### Proof of Work:
+
+```bash
+# Creating the policy 
+aws iam create-policy \
+  --policy-name Developer \
+  --policy-document file://./policies/developer.json
+
+# Get account ID
+aws sts get-caller-identity --query Account --output text
+
+# Attaching policy to a group 
+aws iam attach-group-policy \
+  --group-name Developer \
+  --policy-arn arn:aws:iam::804054839699:policy/Developer
+
+# Attach policy to a user
+aws iam attach-user-policy \
+  --user-name Dev-user \
+  --policy arn:aws:iam::<ACCOUNT_ID>:policy/<Policy_name>
+
+# Attach Polic to a role
+aws iam attach-role-policy \
+  --role-name <Role Name> \
+  --policy arn:aws:iam::<ACCOUNT_ID>:policy/<Policy_name>
+
+# Verify for a group
+aws iam list-attached-group-policies --group-name Developer
+
+# Verify for a user
+aws iam list-attached-user-policies --user-nme <user name>
+
+# Verify for a Role
+aws iam list-attached-role-policies --role-name <role name>
+
+# How to find any policy
+aws iam list-policies --scope local | grep policy-name
+```
+![Developer policy added](images/Screenshot%202025-08-21%20062753.png)
+
+
+### Notes:
+
+**Quick Notes**
+- Should use explicit ARNs for best practice 
+    - Example formats:
+        - S3 bucket: arn:aws:s3:::my-lab-bucket
+        - S3 object: arn:aws:s3:::my-lab-bucket/*
+        - EC2 instance: arn:aws:ec2:us-east-1:123456789012:instance/i-123abc456def7890
+- IAM Evaluation Basics
+    - Default = Deny - If nothing allows it, it’s denied.
+    - Explicit Allow - Grants permission.
+    - Explicit Deny - Overrides everything, even an Allow.
+    - Deny > Allow > Default Deny
+
+
+    
+**Understanding the JSON Anatomy:**
+- Version - Always "2012-10-17" (latest policy language) or unless updated.
+- Statement - Where all permissions live. An empty list = no permissions.
+    - Can be a single object {} or a list [{},{},{}].
+    - Each statement = one rule (Allow/Deny + Actions + Resources + Conditions).
+- Sid (optional)
+    - Stands for Statement ID.
+    - Human-friendly label for identifying a rule.
+    - Example: "Sid": "AllowS3ReadOnly".
+- Effect
+    - "Allow" or "Deny".
+    - IAM is deny by default, so "Allow" gives access.
+    - Explicit "Deny" always overrides any "Allow".
+- Action
+    - API calls that the policy controls.
+    - The Format is: service:operation.
+        - Examples:
+            - s3:ListBucket
+            - ec2:StartInstances
+            - rds:CreateDBSnapshot
+        - Can use wildcards:
+            - s3:* → all S3 actions.
+            - s3:Get* → all S3 “Get” actions.
+- Resource
+    - Which AWS resource(s) the action applies to.
+    - Specified by ARN (Amazon Resource Name).
+        - Bucket: arn:aws:s3:::my-lab-bucket
+        - Bucket objects: arn:aws:s3:::my-lab-bucket/*
+        - EC2 instance: arn:aws:ec2:us-east-1:123456789012:instance/i-123abc456def7890
+    - "*" = all resources
+        - arn:aws:s3:::my-lab-bucket/*
+
+- Condition (optional)
+    - Extra filters. Restricts when/where/how the action is allowed.
+        - Examples:
+            - By IP range (aws:SourceIp)
+            - By tag (aws:ResourceTag/Environment)
+                - "StringEquals": { "ec2:ResourceTag/Environment": "Dev" }
+                - StringNotEquals": { "ec2:ResourceTag/Environment": "Dev" }
+            - By time (aws:CurrentTime)
+                - "DateLessThan": { "aws:CurrentTime": "2025-08-25T09:00:00Z" }
+                - "DateGreaterThan": { "aws:CurrentTime": "2025-08-25T17:00:00Z" }
+
+```json
+Basic Anatomy
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "OptionalIdentifier",
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket",
+        "s3:GetObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::my-lab-bucket",
+        "arn:aws:s3:::my-lab-bucket/*"
+      ],
+      "Condition": {
+        "IpAddress": {
+          "aws:SourceIp": "203.0.113.0/24"
+        }
+      }
+    }
+  ]
+}
+
+Example of Deny > Allow > Default Deny
+
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowRead",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject"
+      ],
+      "Resource": "arn:aws:s3:::my-lab-bucket/*"
+    },
+    {
+      "Sid": "DenySecretsFolder",
+      "Effect": "Deny",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::my-lab-bucket/secrets/*"
+    }
+  ]
+}
+
+Resulting in the user being able to read everything execept for what is in secrets
+
+```
+
+
+### Learning Moments
+
+Got a little stuck because I wasn't in the right directory when creating the policy and then another one because i didn't save the policy, little things but important to remeber.
+
+
+
 ## Full CLI Command referenece for IAM 
 ```bash
 ## Creating admin Group and attaching policy 
@@ -326,6 +487,42 @@ aws sts get-caller-identity --profile readonly
 
 # Default to readonly
 export AWS_PROFILE=readonly 
+
+# Policies 
+# Creating the policy 
+aws iam create-policy \
+  --policy-name Developer \
+  --policy-document file://./policies/developer.json
+
+# Get account ID
+aws sts get-caller-identity --query Account --output text
+
+# Attaching policy to a group 
+aws iam attach-group-policy \
+  --group-name Developer \
+  --policy-arn arn:aws:iam::804054839699:policy/Developer
+
+# Attach policy to a user
+aws iam attach-user-policy \
+  --user-name Dev-user \
+  --policy arn:aws:iam::<ACCOUNT_ID>:policy/<Policy_name>
+
+# Attach Polic to a role
+aws iam attach-role-policy \
+  --role-name <Role Name> \
+  --policy arn:aws:iam::<ACCOUNT_ID>:policy/<Policy_name>
+
+# Verify for a group
+aws iam list-attached-group-policies --group-name Developer
+
+# Verify for a user
+aws iam list-attached-user-policies --user-nme <user name>
+
+# Verify for a Role
+aws iam list-attached-role-policies --role-name <role name>
+
+# How to find any policy
+aws iam list-policies --scope local | grep policy-name
 ```
 
 

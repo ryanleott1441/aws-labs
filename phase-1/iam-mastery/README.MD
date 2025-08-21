@@ -1,8 +1,11 @@
 # IAM Lab – Quick Overview
 
 This repo documents my AWS IAM learning journey.  
-The setup.md contains the detailed steps, CLI commands, and proof of work.  
 This README gives a quick summary.
+
+The setup.md contains the detailed steps, CLI commands, and proof of work.  
+
+Please check that out here [Full documented lab setup](https://github.com/ryanleott1441/aws-labs/blob/main/phase-1/iam-mastery/docs/lab-setup.md)
 
 ---
 
