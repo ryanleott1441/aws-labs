@@ -256,47 +256,6 @@ In practice, inline policies are rarely recommended except for very specific sit
 
 ## Lesson 4: Creating Customer Managed Policies
 
-### Proof of Work:
-
-```bash
-# Creating the policy 
-aws iam create-policy \
-  --policy-name Developer \
-  --policy-document file://./policies/developer.json
-
-# Get account ID
-aws sts get-caller-identity --query Account --output text
-
-# Attaching policy to a group 
-aws iam attach-group-policy \
-  --group-name Developer \
-  --policy-arn arn:aws:iam::804054839699:policy/Developer
-
-# Attach policy to a user
-aws iam attach-user-policy \
-  --user-name Dev-user \
-  --policy arn:aws:iam::<ACCOUNT_ID>:policy/<Policy_name>
-
-# Attach Polic to a role
-aws iam attach-role-policy \
-  --role-name <Role Name> \
-  --policy arn:aws:iam::<ACCOUNT_ID>:policy/<Policy_name>
-
-# Verify for a group
-aws iam list-attached-group-policies --group-name Developer
-
-# Verify for a user
-aws iam list-attached-user-policies --user-nme <user name>
-
-# Verify for a Role
-aws iam list-attached-role-policies --role-name <role name>
-
-# How to find any policy
-aws iam list-policies --scope local | grep policy-name
-```
-![Developer policy added](images/Screenshot%202025-08-21%20062753.png)
-
-
 ### Notes:
 
 **Quick Notes**
@@ -310,7 +269,6 @@ aws iam list-policies --scope local | grep policy-name
     - Explicit Allow - Grants permission.
     - Explicit Deny - Overrides everything, even an Allow.
     - Deny > Allow > Default Deny
-
 
     
 **Understanding the JSON Anatomy:**
@@ -406,6 +364,46 @@ Example of Deny > Allow > Default Deny
 Resulting in the user being able to read everything execept for what is in secrets
 
 ```
+
+### Proof of Work:
+
+```bash
+# Creating the policy 
+aws iam create-policy \
+  --policy-name Developer \
+  --policy-document file://./policies/developer.json
+
+# Get account ID
+aws sts get-caller-identity --query Account --output text
+
+# Attaching policy to a group 
+aws iam attach-group-policy \
+  --group-name Developer \
+  --policy-arn arn:aws:iam::804054839699:policy/Developer
+
+# Attach policy to a user
+aws iam attach-user-policy \
+  --user-name Dev-user \
+  --policy arn:aws:iam::<ACCOUNT_ID>:policy/<Policy_name>
+
+# Attach Polic to a role
+aws iam attach-role-policy \
+  --role-name <Role Name> \
+  --policy arn:aws:iam::<ACCOUNT_ID>:policy/<Policy_name>
+
+# Verify for a group
+aws iam list-attached-group-policies --group-name Developer
+
+# Verify for a user
+aws iam list-attached-user-policies --user-nme <user name>
+
+# Verify for a Role
+aws iam list-attached-role-policies --role-name <role name>
+
+# How to find any policy
+aws iam list-policies --scope local | grep policy-name
+```
+![Developer policy added](images/Screenshot%202025-08-21%20062753.png)
 
 
 ### Learning Moments
