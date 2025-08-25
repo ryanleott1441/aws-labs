@@ -411,6 +411,78 @@ aws iam list-policies --scope local | grep policy-name
 Got a little stuck because I wasn't in the right directory when creating the policy and then another one because i didn't save the policy, little things but important to remeber.
 
 
+## Lesson 5: All about roles
+
+**Overview**
+
+- Created a trust policy (using json)
+- Created a role and attached trust policy (with cli commands)
+- Learning about how EC2 needs instance profiles to run
+- Creating a simple EC2 role to run s3 
+- Launching an EC2 intance with the role (on AWS console as I have not yet learned the CLI commands) and then checking with ssh into the instance
+
+
+### Notes:
+
+Role: A role is like a job title in AWS. It doesn’t belong to a person but can be assumed temporarily by a user, service, or account to get permissions.
+
+Trust Policy: Defines who or what can assume the role. Example: EC2 service, Lambda service, or another AWS account.
+
+Permission Policy: Defines what actions the role can perform once it’s assumed. Example: read from S3, write to DynamoDB, log to CloudWatch.
+
+
+EC2 instances can’t take a role directly.
+Instead you put the role inside an instance profile and then attach the profile to the instance.
+The instance profile acts like the bridge between the EC2 instance and the IAM role.
+
+Have not learned EC2 just yet, so will make the instance on the aws console with the role and then ssh into it. 
+
+### Proof of Work:
+
+- Creating a trust policy:
+For the trust policy, you will always need the principal (what service / user is allowed to assume this role) and the action sts:AssumeRole
+
+```json
+Basic layout of a trust policy 
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": { "Service": "ec2.amazonaws.com" },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+```
+
+Create a role with CLI attaching permission, creating a instance profile.
+Creating a instance with EC2 using the role on aws console as I have not learned EC2 instances just yet 
+
+```bash
+# Creating the role
+aws iam create-role \
+  --role-name MyEc2Role \
+  --assume-role-policy-document file://policies/ec2-trust.json
+
+# Attach permission to the role
+aws iam attach-role-policy \
+  --role-name MyEc2Role \
+  --policy-arn arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+
+# View trust policy
+aws iam get-role --role-name MyEc2Role
+
+# create an instance profile
+aws iam create-instance-profile --instance-profile-name EC2ReadOnlyProfile
+aws iam add-role-to-instance-profile \
+  --instance-profile-name EC2ReadOnlyProfile \
+  --role-name MyEc2Role
+
+```
+
+![IAM role for EC2 and s3](role-s3-readonly.png)
+
 
 ## Full CLI Command referenece for IAM 
 ```bash
