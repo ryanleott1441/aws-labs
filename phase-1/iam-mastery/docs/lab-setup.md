@@ -482,7 +482,7 @@ aws iam add-role-to-instance-profile \
 
 ```
 
-![IAM role for EC2 and s3](role-s3-readonly.png)
+![IAM role for EC2 and s3](images/role-s3-readonly.png)
 
 
 ## Full CLI Command referenece for IAM 
